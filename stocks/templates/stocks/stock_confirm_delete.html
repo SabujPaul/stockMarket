@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ... (your head content) ... -->
+</head>
+<body>
+    <h2>Confirm Delete</h2>
+    <p>Are you sure you want to delete the stock entry for {{ stock.trade_code }} on {{ stock.date }}?</p>
+    <form method="post" action="{% url 'stock_delete' pk=stock.pk %}">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
+        <a href="{% url 'home' %}">Cancel</a>
+    </form>
+</body>
+</html>

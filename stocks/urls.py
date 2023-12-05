@@ -8,4 +8,5 @@ urlpatterns = [
     path('stock/new/', views.stock_create, name='stock_create'),
     path('stock/<int:pk>/edit/', views.stock_edit, name='stock_edit'),
     path('stock/<int:pk>/delete/', views.stock_delete, name='stock_delete'),
+    #path('stock_list/', views.stock_list, name='stock_list'),
 ]

@@ -1,96 +1,163 @@
-<html>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Data</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        canvas {
-            max-width: 800px;
-        }
-    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    
 </head>
 <body>
     <h1>Stock Data</h1>
 
-    <!-- Line chart and dropdown for trade_code selection -->
     <div>
         <label for="tradeCodeDropdown">Select Trade Code:</label>
         <select id="tradeCodeDropdown" onchange="updateChartData()">
             <option value="all">All Trade Codes</option>
-            <!-- Add options dynamically based on available trade codes -->
             {% for trade_code in trade_codes %}
                 <option value="{{ trade_code }}">{{ trade_code }}</option>
             {% endfor %}
         </select>
+        
+        
     </div>
 
-    <div>
-        <canvas id="lineChart"></canvas>
-    </div>
+    
+        <canvas id="myChart" style="width:100%;max-width:700px"></canvas>
+    
+    
 
     <table>
-        <!-- ... table code ... -->
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Trade Code</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Open</th>
+                <th>Close</th>
+                <th>Volume</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.date }}</td>
+                    <td>{{ stock.trade_code }}</td>
+                    <td>{{ stock.high }}</td>
+                    <td>{{ stock.low }}</td>
+                    <td>{{ stock.open }}</td>
+                    <td>{{ stock.close }}</td>
+                    <td>{{ stock.volume }}</td>
+                    <td>
+                        <a href="{% url 'stock_detail' pk=stock.pk %}">View</a>
+                        <a href="{% url 'stock_edit' pk=stock.pk %}">Edit</a>
+                        <a href="{% url 'stock_delete' pk=stock.pk %}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
     <a href="{% url 'stock_create' %}">Add Stock</a>
 
     <script>
+        // JavaScript code for creating the line chart and handling dropdown change
         var stocksData = JSON.parse('{{ stocks_json|escapejs }}');
-        var chartData = [];
-        var labels = [];
-
+        var chart;
+    
+        // Function to filter stocks based on selected trade_code
         function filterStocksByTradeCode(tradeCode) {
             if (tradeCode === 'all') {
                 return stocksData;
             } else {
-                return stocksData.filter(function (stock) {
-                    return stock.trade_code === tradeCode;
+                return stocksData.filter(function (Stock) {
+                    return Stock.trade_code === tradeCode;
                 });
             }
         }
-
+    
+        // Function to update chart data based on selected trade_code
         function updateChartData() {
             var selectedTradeCode = document.getElementById('tradeCodeDropdown').value;
             var filteredStocks = filterStocksByTradeCode(selectedTradeCode);
-
-            // Extract labels and data for the line chart
-            labels = filteredStocks.map(function (stock) {
-                return stock.date;
+    
+            // Prepare data for the line chart
+            var chartLabels = filteredStocks.map(function(Stock) {
+                return Stock.date;
             });
-
-            chartData = filteredStocks.map(function (stock) {
-                return stock.close;
+    
+            var chartData = filteredStocks.map(function(Stock) {
+                return Stock.close;
             });
-
-            updateChart();
-        }
-
-        function updateChart() {
-            var ctx = document.getElementById('lineChart').getContext('2d');
-            var myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Close Prices',
-                        data: chartData,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: [{
-                            type: 'linear',
-                            position: 'bottom'
+    
+            // Update the chart or create a new one
+            if (chart) {
+                chart.data.labels = chartLabels;
+                chart.data.datasets[0].data = chartData;
+                chart.update();
+            } else {
+                var ctx = document.getElementById('mychart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Close Prices',
+                            data: chartData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false
                         }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom'
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
         }
-
+    
         // Initial call to set up the chart
         updateChartData();
     </script>
+
+    <!-- <script>
+const xValues = [100,200,300,400,500,600,700,800,900,1000];
+
+new Chart("myChart", {
+  type: "line",
+  data: {
+    labels: xValues,
+    datasets: [{ 
+      data: [860,1140,1060,1060,1070,1110,1330,2210,7830,2478],
+      borderColor: "red",
+      fill: false
+    }, { 
+      data: [1600,1700,1700,1900,2000,2700,4000,5000,6000,7000],
+      borderColor: "green",
+      fill: false
+    }, { 
+      data: [300,700,2000,5000,6000,4000,2000,1000,200,100],
+      borderColor: "blue",
+      fill: false
+    }]
+  },
+  options: {
+    legend: {display: false}
+  }
+});
+</script> -->
 </body>
 </html>
